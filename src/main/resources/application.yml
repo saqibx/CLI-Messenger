@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: devchat
+  main:
+    banner-mode: "off"
+
+server:
+  port: ${PORT:8080}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+devchat:
+  auth:
+    secret: ${DEVCHAT_AUTH_SECRET:dev-only-secret-change-me-0123456789abcdef}
+    token-ttl-hours: ${DEVCHAT_TOKEN_TTL_HOURS:720}
+  topic: dev-chat
+  topic-partitions: 3
+  topic-replicas: 1
+  group-id: devchat-${random.uuid}
+  dynamodb:
+    endpoint: ${DYNAMODB_ENDPOINT:http://localhost:8000}
+    region: ${AWS_REGION:us-east-1}
+    table-prefix: DevChat
+    auto-create-tables: true
+
+logging:
+  level:
+    root: WARN
+    org.apache.kafka: ERROR
+    org.springframework.kafka: WARN
+    com.devchat: INFO

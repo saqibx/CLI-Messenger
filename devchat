@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+cd "$(dirname "$0")"
+
+JAR="target/devchat-cli-0.1.0.jar"
+PORT="${PORT:-8099}"
+
+say() { printf '\033[36m> %s\033[0m\n' "$1"; }
+
+
+if ! docker info >/dev/null 2>&1; then
+  say "Starting Docker Desktop..."
+  open -a Docker
+  for _ in $(seq 1 60); do
+    docker info >/dev/null 2>&1 && break
+    sleep 2
+  done
+  docker info >/dev/null 2>&1 || { echo "Docker didn't start. Open Docker Desktop and retry."; exit 1; }
+fi
+
+
+if [ -z "$(docker compose ps --status running --quiet 2>/dev/null)" ]; then
+  say "Starting Kafka + DynamoDB..."
+  docker compose up -d >/dev/null
+  sleep 4
+fi
+
+
+if [ ! -f "$JAR" ] || [ -n "$(find src -newer "$JAR" -type f 2>/dev/null | head -1)" ]; then
+  say "Building the server (first run / code changed)..."
+  mvn -q -Dmaven.test.skip=true package
+fi
+
+
+say "Starting DevChat backend on http://localhost:${PORT}  -  use the 'msg' CLI in another terminal."
+exec env PORT="$PORT" java -jar "$JAR"

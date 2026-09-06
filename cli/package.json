@@ -1,0 +1,23 @@
+{
+  "name": "msg-cli",
+  "version": "0.1.0",
+  "description": "Terminal chat for developers - register, log in, and message from your CLI.",
+  "type": "module",
+  "bin": {
+    "msg": "bin/msg.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "keywords": [
+    "chat",
+    "cli",
+    "messaging",
+    "terminal"
+  ],
+  "license": "MIT"
+}
