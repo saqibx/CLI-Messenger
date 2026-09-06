@@ -1,0 +1,12 @@
+target/
+*.class
+*.log
+
+node_modules/
+msg-downloads/
+
+.idea/
+*.iml
+.vscode/
+.claude/settings.local.json
+.DS_Store
