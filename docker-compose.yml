@@ -1,6 +1,3 @@
-# Single-node Kafka (KRaft mode, no ZooKeeper) for local DevChat development.
-# Start with:  docker compose up -d
-# Stop with:   docker compose down
 services:
   kafka:
     image: apache/kafka:3.8.1
@@ -21,7 +18,6 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
-  # Local DynamoDB (in-memory) for users, contacts, chats, and message history.
   dynamodb:
     image: amazon/dynamodb-local:2.5.2
     container_name: devchat-dynamodb

@@ -1,0 +1,8 @@
+target/
+cli/node_modules/
+.git/
+*.log
+msg-downloads/
+.idea/
+.vscode/
+.DS_Store

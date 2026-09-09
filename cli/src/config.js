@@ -1,25 +1,13 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { mkdirSync, readFileSync, writeFileSync, chmodSync, rmSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, chmodSync } from 'node:fs';
 
 const DEFAULT_SERVER = 'http://localhost:8099';
 
 
 function configDir() {
   const base = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
-
-  const profile = process.env.MSG_PROFILE;
-
-  if (profile) {
-    return join(base, 'msg', 'profiles', profile);
-  }
-
   return join(base, 'msg');
-}
-
-
-export function currentProfile() {
-  return process.env.MSG_PROFILE || null;
 }
 
 
@@ -82,12 +70,4 @@ export function clearAuth() {
 
 export function configPath() {
   return configFile();
-}
-
-
-export function resetAll() {
-  try {
-    rmSync(configFile());
-  } catch {
-  }
 }

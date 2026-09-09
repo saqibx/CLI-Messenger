@@ -1,5 +1,6 @@
 package com.devchat.kafka;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -8,6 +9,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 
 
 @Configuration
+@ConditionalOnProperty(name = "devchat.messaging", havingValue = "kafka")
 public class KafkaListenerConfig {
 
     @Bean

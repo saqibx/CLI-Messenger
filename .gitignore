@@ -5,6 +5,12 @@ target/
 node_modules/
 msg-downloads/
 
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+tfplan
+
 .idea/
 *.iml
 .vscode/

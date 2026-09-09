@@ -3,9 +3,6 @@ spring:
     name: devchat
   main:
     banner-mode: "off"
-
-server:
-  port: ${PORT:8080}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
@@ -16,7 +13,11 @@ server:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+server:
+  port: ${PORT:8080}
+
 devchat:
+  messaging: ${DEVCHAT_MESSAGING:inprocess}
   auth:
     secret: ${DEVCHAT_AUTH_SECRET:dev-only-secret-change-me-0123456789abcdef}
     token-ttl-hours: ${DEVCHAT_TOKEN_TTL_HOURS:720}

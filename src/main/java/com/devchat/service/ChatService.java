@@ -1,6 +1,6 @@
 package com.devchat.service;
 
-import com.devchat.kafka.MessagePublisher;
+import com.devchat.messaging.MessageBus;
 import com.devchat.model.ChatMessage;
 import com.devchat.model.Conversation;
 import com.devchat.model.ConversationMember;
@@ -32,16 +32,16 @@ public class ChatService {
     private final ConversationRepository conversations;
     private final MessageRepository messages;
     private final FileRepository files;
-    private final MessagePublisher publisher;
+    private final MessageBus bus;
 
 
     public ChatService(UserRepository users, ConversationRepository conversations,
-                       MessageRepository messages, FileRepository files, MessagePublisher publisher) {
+                       MessageRepository messages, FileRepository files, MessageBus bus) {
         this.users = users;
         this.conversations = conversations;
         this.messages = messages;
         this.files = files;
-        this.publisher = publisher;
+        this.bus = bus;
     }
 
 
@@ -178,7 +178,7 @@ public class ChatService {
         messages.save(msg);
 
         conversations.touchLastMessage(conversationId, conv.getMembers(), ts);
-        publisher.publish(ChatMessage.text(conversationId, sender, text, Instant.ofEpochMilli(ts)));
+        bus.publish(ChatMessage.text(conversationId, sender, text, Instant.ofEpochMilli(ts)));
     }
 
 
@@ -238,7 +238,7 @@ public class ChatService {
         messages.save(msg);
 
         conversations.touchLastMessage(conversationId, conv.getMembers(), ts);
-        publisher.publish(ChatMessage.file(conversationId, sender, fileName, fileId, Instant.ofEpochMilli(ts)));
+        bus.publish(ChatMessage.file(conversationId, sender, fileName, fileId, Instant.ofEpochMilli(ts)));
         return fileId;
     }
 

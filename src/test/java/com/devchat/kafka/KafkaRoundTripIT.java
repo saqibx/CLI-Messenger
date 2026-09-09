@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {
         "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "devchat.messaging=kafka",
         "devchat.topic=dev-chat",
         "devchat.group-id=devchat-test",
         "devchat.dynamodb.auto-create-tables=false"

@@ -4,11 +4,13 @@ import com.devchat.model.ChatMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@ConditionalOnProperty(name = "devchat.messaging", havingValue = "kafka")
 public class MessagePublisher {
 
     private final KafkaTemplate<String, String> kafkaTemplate;

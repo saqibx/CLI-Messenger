@@ -17,10 +17,6 @@ const c = {
 export async function run(argv) {
   const { positionals, flags } = parseArgs(argv);
 
-  if (flags.profile) {
-    process.env.MSG_PROFILE = String(flags.profile);
-  }
-
   const command = positionals[0];
 
   switch (command) {
@@ -137,7 +133,6 @@ ${c.bold('Inside a chat')}
   type text to send - /dm <user> - /chats - /open <n> - /history - /quit
 
 ${c.bold('Flags')}
-  --profile <name>  use a separate account/config (run 2 users on one machine)
   --password <pw>   supply the password non-interactively
   --name <name>     display name at registration
 `);
