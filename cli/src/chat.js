@@ -178,6 +178,8 @@ export async function chat({ target } = {}) {
       case 'login': return switchLogin(rest);
       case 'logout': return doLogout();
       case 'dm': return arg ? openDirect(arg) : console.log(c.dim('Usage: /dm <username>'));
+      case 'group': return createGroup(rest);
+      case 'addmember': return arg ? addMember(arg) : console.log(c.dim('Usage: /addmember <username>'));
       case 'file': return arg ? sendFileFromPath(arg) : console.log(c.dim('Usage: /file <path>  (or type [addfile: <path>])'));
       case 'save': return saveFile(rest);
       case 'chats': return showChats(false);
@@ -495,12 +497,52 @@ export async function chat({ target } = {}) {
   }
 
 
+  async function createGroup(users) {
+    if (users.length === 0) {
+      console.log(c.dim('Usage: /group <username> <username> ...'));
+      return;
+    }
+
+    const name = users.join(', ');
+
+    const view = await api('/api/chats/group', {
+      method: 'POST', token: session.token, body: { name, members: users },
+    });
+
+    current = { id: view.id, name: view.displayName };
+    console.log(c.green(`- created group ${view.displayName} -`));
+
+    await showHistory();
+
+    if (rl) {
+      setPrompt();
+      rl.prompt();
+    }
+  }
+
+
+  async function addMember(username) {
+    if (!current) {
+      console.log(c.dim('Open a group first.'));
+      return;
+    }
+
+    const view = await api(`/api/chats/${encodeURIComponent(current.id)}/members`, {
+      method: 'POST', token: session.token, body: { usernameOrEmail: username },
+    });
+
+    console.log(c.green(`- added ${username} to ${view.displayName} -`));
+  }
+
+
   function showHelp() {
     console.log(`${c.bold('Commands')}
   ${c.bold('<text>')}              send to the open chat
   ${c.bold('[addfile: <path>]')}   send a file (e.g. [addfile: pom.xml])
   /save <n>           save a received file (into ./msg-downloads)
   /dm <user>          open a 1:1 chat
+  /group <user...>    start a group chat with those people
+  /addmember <user>   add someone to the current group
   /chats              list your chats
   /open <n>           switch to chat number n
   /history            reprint recent messages

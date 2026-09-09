@@ -71,6 +71,23 @@ public class AuthService {
     }
 
 
+    public void changePassword(String username, String currentPassword, String newPassword) {
+        User user = users.findByUsername(username)
+                .orElseThrow(() -> new AuthException("Account not found."));
+
+        if (!encoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new AuthException("Current password is incorrect.");
+        }
+
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new AuthException("Password must be at least 8 characters.");
+        }
+
+        user.setPasswordHash(encoder.encode(newPassword));
+        users.save(user);
+    }
+
+
     private void validate(String username, String email, String password) {
         if (!USERNAME.matcher(username).matches()) {
             throw new AuthException("Username must be 3-30 chars: letters, digits, and . _ - only.");

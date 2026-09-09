@@ -69,6 +69,11 @@ public class UserRepository {
     }
 
 
+    public void save(User user) {
+        table.putItem(user);
+    }
+
+
     public static class UsernameTakenException extends RuntimeException {
         public UsernameTakenException(String username) {
             super("Username already taken: " + username);

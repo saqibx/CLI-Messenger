@@ -6,6 +6,7 @@ import com.devchat.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,10 +16,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenService tokens;
+    private final AuthSupport auth;
 
-    public AuthController(AuthService authService, TokenService tokens) {
+    public AuthController(AuthService authService, TokenService tokens, AuthSupport auth) {
         this.authService = authService;
         this.tokens = tokens;
+        this.auth = auth;
     }
 
     public record RegisterRequest(String username, String email, String password, String displayName) {}
@@ -26,6 +29,8 @@ public class AuthController {
     public record LoginRequest(String usernameOrEmail, String password) {}
 
     public record AuthResponse(String token, String username, String displayName, String email) {}
+
+    public record ChangePasswordRequest(String currentPassword, String newPassword) {}
 
 
     @PostMapping("/register")
@@ -43,6 +48,15 @@ public class AuthController {
 
         AuthResponse body = response(user);
         return ResponseEntity.ok(body);
+    }
+
+
+    @PostMapping("/password")
+    public ResponseEntity<Void> changePassword(@RequestHeader("Authorization") String token,
+                                               @RequestBody ChangePasswordRequest req) {
+        String username = auth.requireUser(token);
+        authService.changePassword(username, req.currentPassword(), req.newPassword());
+        return ResponseEntity.ok().build();
     }
 
 

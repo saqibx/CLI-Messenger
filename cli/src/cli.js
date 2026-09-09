@@ -24,6 +24,7 @@ export async function run(argv) {
     case 'login': return login(positionals.slice(1), flags);
     case 'logout': return logout();
     case 'whoami': return whoami();
+    case 'settings': return settings();
     case 'config': return config(positionals.slice(1));
     case undefined: return chat({});
     case 'chat': return chat({ target: positionals[1] });
@@ -115,6 +116,47 @@ function config(args) {
 }
 
 
+async function settings() {
+  let auth = getAuth();
+
+  if (!auth) {
+    const who = await prompt('Username or email: ');
+    const password = await promptHidden('Password: ');
+    auth = await api('/api/auth/login', { method: 'POST', body: { usernameOrEmail: who, password } });
+  }
+
+  console.log(`Settings for @${auth.username}`);
+  console.log('  1) Change password');
+  console.log('  q) Quit');
+
+  const choice = await prompt('> ');
+
+  if (choice === '1') {
+    await changePassword(auth.token);
+  }
+}
+
+
+async function changePassword(token) {
+  const current = await promptHidden('Current password: ');
+  const next = await promptHidden('New password: ');
+  const confirm = await promptHidden('Confirm new password: ');
+
+  if (next !== confirm) {
+    console.log(c.red('Passwords do not match.'));
+    return;
+  }
+
+  await api('/api/auth/password', {
+    method: 'POST',
+    token,
+    body: { currentPassword: current, newPassword: next },
+  });
+
+  console.log(c.green('Password changed.'));
+}
+
+
 function help() {
   console.log(`${c.bold('msg')} - terminal chat for developers
 
@@ -125,6 +167,7 @@ ${c.bold('Usage')}
   msg login [user|email]      log in
   msg logout                  log out
   msg whoami                  show the logged-in account
+  msg settings                change your password
   msg config server <url>     point at a backend server
   msg config show             show current settings
   msg help                    this help
