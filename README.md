@@ -1,105 +1,100 @@
 # DevChat
 
-Chat with other people from your terminal. You run a little CLI called `msg`, it talks
-to a backend server over HTTP and a websocket, and messages show up live.
+A terminal-based chat app. You install a small CLI called `msg`, make an account, and message
+other people in real time over websockets. This repo has both the backend and the CLI, which I
+built and deployed myself.
 
-There are two parts in here:
+It's live at https://chat.saqibmazhar.com, so you can point the CLI at that instead of running
+everything locally if you want.
 
-- `cli/` - the `msg` command line tool (plain Node, no dependencies)
-- `src/` - the backend server (Java / Spring Boot). Uses Kafka to push messages out live
-  and DynamoDB to store users, chats and messages.
+## Project layout
 
-The CLI only ever talks to the server over HTTPS + websocket with a token. It never touches
-Kafka or the database itself.
+- `cli/` - the `msg` command-line client. Plain Node.js, no dependencies.
+- `src/` - the backend server (Java + Spring Boot). Stores data in DynamoDB.
+- `deploy/` - Terraform for deploying the backend to AWS.
 
-## What you need
+The CLI never touches the database directly. It only talks to the server over HTTPS and a
+websocket using a bearer token.
 
-- Node 20 or newer (for the CLI)
+## Requirements
+
+- Node 20+ (for the CLI)
 - JDK 21+ and Maven 3.9+ (for the backend)
-- Docker, for running Kafka and DynamoDB locally
+- Docker (used to run a local DynamoDB)
 
 ## Running it locally
 
-Start the backend first. There is a script that does the docker stuff and builds/runs the
-server for you:
+Start the backend. The `devchat` script builds the jar and runs the server on port 8099:
 
 ```bash
 ./devchat
 ```
 
-That starts the server on http://localhost:8099. Leave it running (Ctrl-C stops it).
-
-Now in another terminal set up the CLI:
+Leave that running, then in another terminal set up the CLI and make an account:
 
 ```bash
 cd cli
-npm link        # makes `msg` available on your path
+npm link          # puts the `msg` command on your PATH
+msg register
+msg               # opens the chat
 ```
 
-Then make an account and start chatting:
-
-```bash
-msg register        # pick a username, email and password
-msg                 # opens the chat
-```
-
-Open a chat with someone and type to send. To message a specific person:
+To open a direct chat with someone:
 
 ```bash
 msg dm <username>
 ```
 
-## msg commands
+## Commands
+
+Outside a chat:
 
 ```
-msg                     open the chat (once you are logged in)
-msg dm <user>           open a 1:1 chat with someone
-msg register            make an account
-msg login               log in
-msg logout              log out
-msg whoami              show who you are logged in as
+msg                     open the chat
+msg dm <user>           1:1 chat with someone
+msg register            create an account
+msg login / logout      log in or out
+msg whoami              show who you're logged in as
+msg settings            change your password
 msg config server <url> point the CLI at a different server
-msg config show         show current settings
-msg help                help
 ```
 
-Once you are inside a chat you can type these:
+Inside a chat you type to send a message, or use:
 
 ```
-<text>              send a message
-[addfile: <path>]   send a file (also /file <path>)
-/save <n>           save a file someone sent you (goes into ./msg-downloads)
 /dm <user>          open a 1:1 chat
+/group <user...>    create a group chat with those people
+/addmember <user>   add someone to the group you're in
+[addfile: <path>]   send a file (or /file <path>)
+/save <n>           save a file someone sent you
 /chats              list your chats
-/open <n>           switch to chat number n
-/history            show recent messages again
-/login [user]       log in as someone else (just this window)
-/logout             log out
-/who                show who you are
+/open <n>           switch chats
+/history            reprint recent messages
 /quit               leave
 ```
 
-Each running `msg` holds its login in memory, so you can open two terminals and log in as
-two different people to test it.
+Each running `msg` keeps its login in memory, so you can open two terminals and log in as two
+different users to test it.
 
 ## How it works
 
-- The CLI hits REST endpoints on the backend (register, login, send message, list chats,
-  history, upload/download files).
-- When you send a message the server saves it and drops it on a Kafka topic. The server
-  reads that topic and pushes the message down the websocket to everyone in the chat, so it
-  shows up live.
-- Users, contacts, chats, messages and small files live in DynamoDB. Files are capped at
-  256KB for now since the bytes sit in the database (S3 comes later).
+When you send a message, the server saves it to DynamoDB and pushes it out to every member of the
+chat over their websocket, so it appears instantly. There's also an optional Kafka mode for
+running more than one server instance, but by default delivery happens in-process and no message
+broker is needed.
 
-## Build and test
+DynamoDB holds users, contacts, conversations, messages, and files. Auth uses stateless,
+HMAC-signed tokens with BCrypt-hashed passwords.
+
+## Build
 
 ```bash
-mvn -Dmaven.test.skip=true package   # build the server jar
+mvn -Dmaven.test.skip=true package
 java -jar target/devchat-cli-0.1.0.jar
 ```
 
 ## Deploying
 
-The same backend is meant to run on AWS (ECS Fargate + MSK for Kafka + DynamoDB). Point the
-CLI at it with `msg config server https://your-server`.
+The `deploy/` folder has Terraform that provisions the backend on AWS (ECS Fargate behind an
+Application Load Balancer, plus DynamoDB, ECR, and Secrets Manager). That's how the live instance
+runs, with TLS through an ACM certificate and a subdomain pointed at the load balancer.
